@@ -1,10 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"os"
-	"strings"
-)
+import "fmt"
 
 type clothes struct {
 	name       string
@@ -15,22 +11,19 @@ type clothes struct {
 }
 
 const NMAX = 1000
-const FILENAME = "wardrobe.txt"
 
 type clothing [NMAX]clothes
 
 func main() {
 	var choice, n int
 	var wardrobe clothing
-	loadData(&wardrobe, &n)
 
 	option()
 	fmt.Scan(&choice)
-	for choice != 10 {
+	for choice != 11 {
 		switch choice {
 		case 1:
 			addItem(&wardrobe, &n)
-			saveData(wardrobe, n)
 		case 2:
 			listItem(wardrobe, n)
 			modifyItem(&wardrobe, n)
@@ -44,15 +37,17 @@ func main() {
 		case 6:
 			searchColors(wardrobe, n)
 		case 7:
+			sortLastWorn(&wardrobe, n)
+			searchLastWorn(wardrobe, n)
+		case 8:
 			sortFormality(&wardrobe, n)
 			listItem(wardrobe, n)
-		case 8:
+		case 9:
 			sortLastWorn(&wardrobe, n)
 			listItem(wardrobe, n)
-		case 9:
-			outfitRecommendation(wardrobe, n)
 		case 10:
-			saveData(wardrobe, n)
+			outfitRecommendation(wardrobe, n)
+		case 11:
 			return
 		default:
 			fmt.Println("Invalid number")
@@ -63,7 +58,7 @@ func main() {
 }
 
 func option() {
-	fmt.Println("-----------------------------------------------------------")
+	fmt.Println("============================================================================================")
 	fmt.Println("Let's Manage your OOTD")
 	fmt.Println("1. Add Item")
 	fmt.Println("2. Modify Item")
@@ -71,11 +66,12 @@ func option() {
 	fmt.Println("4. List Item")
 	fmt.Println("5. Search Item by Categories")
 	fmt.Println("6. Search Item by Colors")
-	fmt.Println("7. Sort by formality")
-	fmt.Println("8. Sort by Last Worn")
-	fmt.Println("9. Outfit Recommendation")
-	fmt.Println("10. Exit")
-	fmt.Println("-----------------------------------------------------------")
+	fmt.Println("7. Search Item by Last Worn")
+	fmt.Println("8. Sort by formality")
+	fmt.Println("9. Sort by Last Worn")
+	fmt.Println("10. Outfit Recommendation")
+	fmt.Println("11. Exit")
+	fmt.Println("============================================================================================")
 
 }
 
@@ -122,8 +118,9 @@ func deleteItem(wardrobe *clothing, n *int) {
 }
 
 func listItem(wardrobe clothing, n int) {
+	fmt.Printf("%-4s %-20s %-15s %-10s %-15s %-12s\n", "No", "Name", "Category", "Color", "Formality lvl", "Last Worn")
 	for i := 0; i < n; i++ {
-		fmt.Printf("%d. Name: %s | Category: %s | Color: %s | Formality lvl: %d | Last Worn: %s\n", i+1, wardrobe[i].name, wardrobe[i].categories, wardrobe[i].colors, wardrobe[i].formality, wardrobe[i].lastWorn)
+		fmt.Printf("%-4d %-20s %-15s %-10s %-15d %-12s\n", i+1, wardrobe[i].name, wardrobe[i].categories, wardrobe[i].colors, wardrobe[i].formality, wardrobe[i].lastWorn)
 	}
 }
 
@@ -132,12 +129,14 @@ func searchCategories(wardrobe clothing, n int) {
 	var found int = 0
 	fmt.Print("Enter Categories: ")
 	fmt.Scan(&search)
+	fmt.Printf("%-4s %-20s %-15s %-10s %-15s %-12s\n", "No", "Name", "Category", "Color", "Formality lvl", "Last Worn")
 	for i := 0; i < n; i++ {
 		if wardrobe[i].categories == search {
-			fmt.Println(i+1, ".", wardrobe[i].name, wardrobe[i].categories, wardrobe[i].colors, wardrobe[i].formality, wardrobe[i].lastWorn)
+			fmt.Printf("%-4d %-20s %-15s %-10s %-15d %-12s\n", i+1, wardrobe[i].name, wardrobe[i].categories, wardrobe[i].colors, wardrobe[i].formality, wardrobe[i].lastWorn)
 			found++
 		}
 	}
+
 	if found == 0 {
 		fmt.Println("Categories not found")
 	}
@@ -148,9 +147,10 @@ func searchColors(wardrobe clothing, n int) {
 	var found int = 0
 	fmt.Print("Enter Colors: ")
 	fmt.Scan(&search)
+	fmt.Printf("%-4s %-20s %-15s %-10s %-15s %-12s\n", "No", "Name", "Category", "Color", "Formality lvl", "Last Worn")
 	for i := 0; i < n; i++ {
 		if wardrobe[i].colors == search {
-			fmt.Println(i+1, ".", wardrobe[i].name, wardrobe[i].categories, wardrobe[i].colors, wardrobe[i].formality, wardrobe[i].lastWorn)
+			fmt.Printf("%-4d %-20s %-15s %-10s %-15d %-12s\n", i+1, wardrobe[i].name, wardrobe[i].categories, wardrobe[i].colors, wardrobe[i].formality, wardrobe[i].lastWorn)
 			found++
 		}
 	}
@@ -159,6 +159,33 @@ func searchColors(wardrobe clothing, n int) {
 		fmt.Println("Colors not found")
 	}
 
+}
+
+func searchLastWorn(wardrobe clothing, n int) {
+	var left, mid, right, found int
+	var x string
+	fmt.Print("Enter date you want to search: ")
+	fmt.Scan(&x)
+	found = -1
+	left = 0
+	right = n - 1
+
+	for left <= right && found == -1 {
+		mid = (left + right) / 2
+		if x < wardrobe[mid].lastWorn {
+			right = mid - 1
+		} else if x > wardrobe[mid].lastWorn {
+			left = mid + 1
+		} else {
+			fmt.Printf("%-4s %-20s %-15s %-10s %-15s %-12s\n", "No", "Name", "Category", "Color", "Formality lvl", "Last Worn")
+			fmt.Printf("%-4d %-20s %-15s %-10s %-15d %-12s\n", mid+1, wardrobe[mid].name, wardrobe[mid].categories, wardrobe[mid].colors, wardrobe[mid].formality, wardrobe[mid].lastWorn)
+			found++
+		}
+	}
+
+	if found == -1 {
+		fmt.Println("No item found with that last worn date.")
+	}
 }
 
 func sortFormality(wardrobe *clothing, n int) {
@@ -190,7 +217,7 @@ func sortLastWorn(wardrobe *clothing, n int) {
 	for pass <= n-1 {
 		i = pass
 		temp = wardrobe[pass]
-		for i > 0 && (temp.lastWorn > wardrobe[i-1].lastWorn) {
+		for i > 0 && (temp.lastWorn < wardrobe[i-1].lastWorn) {
 			wardrobe[i] = wardrobe[i-1]
 			i--
 		}
@@ -200,29 +227,31 @@ func sortLastWorn(wardrobe *clothing, n int) {
 
 }
 func outfitRecommendation(wardrobe clothing, n int) {
-	fmt.Println("Outfit recommendation for rainy days")
+	fmt.Println("Outfit recommendation for rainy days:")
 	darkColors := [7]string{"black", "navy", "gray", "brown", "dark green", "dark blue", "dark red"}
 	rainCategories := [4]string{"jacket", "coat", "hoodie", "sweater"}
-	found := false
 	var i, j int
+	var found bool
+	found = false
+	fmt.Printf("%-4s %-20s %-15s %-10s %-15s %-12s\n", "No", "Name", "Category", "Color", "Formality lvl", "Last Worn")
 	for i = 0; i < n; i++ {
 		colorMatch := false
 		categoryMatch := false
 
 		for j = 0; j < 7; j++ {
-			if strings.ToLower(wardrobe[i].colors) == darkColors[j] {
+			if wardrobe[i].colors == darkColors[j] {
 				colorMatch = true
 			}
 		}
 
 		for j = 0; j < 4; j++ {
-			if strings.ToLower(wardrobe[i].categories) == rainCategories[j] {
+			if wardrobe[i].categories == rainCategories[j] {
 				categoryMatch = true
 			}
 		}
 
 		if colorMatch && categoryMatch {
-			fmt.Println(wardrobe[i].name, wardrobe[i].categories, wardrobe[i].colors, wardrobe[i].formality, wardrobe[i].lastWorn)
+			fmt.Printf("%-4d %-20s %-15s %-10s %-15d %-12s\n", i+1, wardrobe[i].name, wardrobe[i].categories, wardrobe[i].colors, wardrobe[i].formality, wardrobe[i].lastWorn)
 			found = true
 		}
 	}
@@ -230,44 +259,16 @@ func outfitRecommendation(wardrobe clothing, n int) {
 		fmt.Println("No suitable outfits found for a rainy day.")
 	}
 
-}
-
-func saveData(wardrobe clothing, n int) {
-	file, err := os.Create(FILENAME)
-	if err != nil {
-		fmt.Println("Error saving data.")
-		return
-	}
-	defer file.Close()
-
-	for i := 0; i < n; i++ {
-		line := fmt.Sprintf("%s|%s|%s|%d|%s\n", wardrobe[i].name, wardrobe[i].categories, wardrobe[i].colors, wardrobe[i].formality, wardrobe[i].lastWorn)
-		file.WriteString(line)
-	}
-}
-
-func loadData(wardrobe *clothing, n *int) {
-	file, err := os.Open(FILENAME)
-	if err != nil {
-		*n = 0
-		return
-	}
-	defer file.Close()
-
-	var line string
-	for {
-		_, err := fmt.Fscanf(file, "%s\n", &line)
-		if err != nil {
-			break
+	found = false
+	fmt.Printf("\nOutfit recommendation for formal meeting:\n")
+	fmt.Printf("%-4s %-20s %-15s %-10s %-15s %-12s\n", "No", "Name", "Category", "Color", "Formality lvl", "Last Worn")
+	for i = 0; i < n; i++ {
+		if wardrobe[i].formality == 3 {
+			fmt.Printf("%-4d %-20s %-15s %-10s %-15d %-12s\n", i+1, wardrobe[i].name, wardrobe[i].categories, wardrobe[i].colors, wardrobe[i].formality, wardrobe[i].lastWorn)
+			found = true
 		}
-		parts := strings.Split(line, "|")
-		if len(parts) == 5 {
-			wardrobe[*n].name = parts[0]
-			wardrobe[*n].categories = parts[1]
-			wardrobe[*n].colors = parts[2]
-			fmt.Sscanf(parts[3], "%d", &wardrobe[*n].formality)
-			wardrobe[*n].lastWorn = parts[4]
-			*n++
-		}
+	}
+	if !found {
+		fmt.Println("No suitable outfits found for formal meeting.")
 	}
 }
